@@ -1,0 +1,15 @@
+{
+  "name": "unicorn-horn-drill",
+  "version": "1.0.0",
+  "description": "UNICORN HORN DRILL — a tiny single-canvas arcade game about drilling everything horn-first.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "test": "node --test",
+    "build": "node scripts/build.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.2"
+  }
+}
