@@ -14,6 +14,10 @@ npm start
 Open **http://127.0.0.1:8080/**. The server binds only to loopback.
 Alternatively, extract the release ZIP and open its `index.html` directly.
 
+> The repo's dev `index.html` loads ES modules and must be served over HTTP
+> (`npm start`); opening it straight from disk via `file://` won't run. Only
+> the release ZIP's `index.html` is meant to be opened directly.
+
 - **Any key or tap** starts. **← / →**, **A / D**, mouse movement, or touch-drag
   steers. Keyboard steering takes over from the mouse.
 - **Center the gold horn on glowing cores.** Side/body impacts and red spikes
