@@ -6,7 +6,7 @@ import {
   VW, ANCHOR_N, ANCHOR_R, MAX_VX,
   BODY_RF, BODY_RX, SPEED_BASE, SPEED_MAX, SPEED_RAMP, DR_SPEED_MUL,
   DIST_SCORE, HIT_BASE, NEAR_BONUS, NEAR_DIST, NEAR_COOLDOWN,
-  COMBO_MAX, BAND, DR_CHARGE, DR_TIME, DR_EXIT_COMBO, DR_SCORE_MUL,
+  COMBO_MAX, BAND, DR_CHARGE, DR_TIME, DR_EXIT_COMBO, DR_SCORE_MUL, DR_GRACE, DR_AFTER_MUL, VIEW_TOP,
   HITSTOP, DEATH_LOCK, RAINBOW, STEP,
 } from "../core/constants.js";
 import { approach } from "../core/math.js";
@@ -80,15 +80,20 @@ function stepRun(s, dt) {
   s.time += dt;
   s.speed = Math.min(SPEED_MAX, SPEED_BASE + s.time * SPEED_RAMP);
 
-  // --- Movement (identical horizontal control in every mode) -------------
-  const kb = (s.input.right ? 1 : 0) - (s.input.left ? 1 : 0);
-  move(p, s.input.aim ? s.input.aimX : null, kb, dt);
+  // --- Movement (Double Rainbow mirrors the world, so it mirrors steering) -
+  const flip = s.dr.phase === "active" ? -1 : 1;
+  const kb = ((s.input.right ? 1 : 0) - (s.input.left ? 1 : 0)) * flip;
+  const aimX = s.input.aim ? (flip < 0 ? VW - s.input.aimX : s.input.aimX) : null;
+  move(p, aimX, kb, dt);
   p.tilt = approach(p.tilt, (p.vx / MAX_VX) * 0.5, 6 * dt);
   p.eye = approach(p.eye, 0, dt * 3); // relax widened eyes
 
   // --- Double Rainbow lifecycle -----------------------------------------
   stepDoubleRainbow(s, dt);
-  const effSpeed = s.speed * (s.dr.phase === "active" ? DR_SPEED_MUL : 1) * ts;
+  // Charge/active/exit keep their authored pacing; only the resumed normal
+  // phase carries the earned Double Rainbow boost.
+  const spdMul = s.dr.phase === "active" ? DR_SPEED_MUL : s.dr.phase === "none" ? s.dr.boost : 1;
+  const effSpeed = s.speed * spdMul * ts;
 
   // --- World advance + distance score ------------------------------------
   const prevDepth = s.depth;
@@ -231,7 +236,8 @@ function stepDoubleRainbow(s, dt) {
   } else if (dr.phase === "exit") {
     dr.t -= dt;
     s.cam.zoom = approach(s.cam.zoom, 1, dt * 1.5);
-    if (dr.t <= 0) { dr.phase = "none"; }
+    // Assignment, not accumulation: the bump is earned once and never stacks.
+    if (dr.t <= 0) { dr.phase = "none"; dr.boost = DR_AFTER_MUL; }
   }
   // ease zoom during active
   if (dr.phase === "active") s.cam.zoom = approach(s.cam.zoom, 0.88, dt * 1.2);
@@ -242,12 +248,14 @@ function activateDR(s) {
   dr.phase = "active"; dr.t = DR_TIME; dr.stage = 1;
   s.cam.sign = -1; s.cam.anchor = ANCHOR_R;
   s.fx.flash = 1;
-  // protect the transition: clear everything close to the player
+  // protect the transition: clear the field, then hold the first mirrored
+  // pair off-screen for DR_GRACE seconds so the flipped view can be read.
+  // The lead covers the ramping speed, so the runway is never shorter.
   s.entities.length = 0;
   s.fx.ribbon.length = 0;
-  s.director.cursor = s.depth + 290;
+  s.director.cursor = s.depth + (ANCHOR_R - VIEW_TOP) +
+    (s.speed + SPEED_RAMP * DR_GRACE) * DR_SPEED_MUL * DR_GRACE;
   s.director.lastX = s.player.x;
-  drFill(s, s.speed * DR_SPEED_MUL);
   sfx(s, "dr");
 }
 

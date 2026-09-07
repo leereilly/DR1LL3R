@@ -40,7 +40,7 @@ export function makeState(seed, best = 0) {
       shockY: 0,
     },
     cam: { shake: 0, px: 0, py: 0, zoom: 1, sign: 1, anchor: ANCHOR_N },
-    dr: { phase: "none", t: 0, charge: 0, stage: 0 }, // none|charge|active|exit
+    dr: { phase: "none", t: 0, charge: 0, stage: 0, boost: 1 }, // none|charge|active|exit
     hitstop: 0,
     slow: 0, // brief near-miss slow-mo timer
 
@@ -93,6 +93,7 @@ export function beginRun(state) {
   state.dr.phase = "none";
   state.dr.t = 0;
   state.dr.charge = 0;
+  state.dr.boost = 1;
   state.hitstop = 0;
   state.slow = 0;
   state.nearCd = 0;

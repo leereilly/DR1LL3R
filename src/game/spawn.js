@@ -70,7 +70,7 @@ function emit(state, seq, phase = "calm") {
     // the maximum speed, including sequence boundaries. Shift the whole
     // following row (hazards included), never move a core toward its spikes.
     const travel = Math.abs(cur.x - d.lastX) + (cur.amp || 0) + d.lastAmp;
-    const needed = (travel / MAX_VX + 0.25) * SPEED_MAX;
+    const needed = (travel / MAX_VX + 0.25) * SPEED_MAX * state.dr.boost;
     const add = Math.max(0, needed - (base + cur.f - d.lastF));
     if (add) {
       const from = cur.f;

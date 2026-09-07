@@ -2,7 +2,7 @@
 // system stack. Reads state; never mutates gameplay. Gameplay lives in a
 // fixed 360x640 logical column; extra screen area is decorative parallax.
 
-import { VW, VH, RAINBOW, BIOMES, COMBO_MAX, BAND, DEATH_LOCK } from "../core/constants.js";
+import { VW, VH, RAINBOW, BIOMES, COMBO_MAX, BAND, DEATH_LOCK, VIEW_TOP } from "../core/constants.js";
 import { clamp } from "../core/math.js";
 
 const FONT = "system-ui,-apple-system,Segoe UI,Roboto,sans-serif";
@@ -206,7 +206,7 @@ function drawEntities(ctx, s, Y, biome) {
   for (const e of s.entities) {
     if (!e.alive) continue;
     const y = Y(e.fz);
-    if (y < 110 || y > VH + 40) continue;
+    if (y < VIEW_TOP || y > VH + 40) continue;
     if (e.kind === "hazard") drawHazard(ctx, e.x, y, e.r);
     else drawTarget(ctx, e.x, y, e.r, e.optional, e.skin);
   }
@@ -307,6 +307,9 @@ function drawPopups(ctx, s, Y) {
 
 // --- Unicorn --------------------------------------------------------------
 
+// Side profile of a horse diving horn-first: +y is forward (the drill
+// direction), +x is the belly side, -x the spine. Every offset below is in
+// that frame, so the whole rig flips cleanly for the mirrored Double Rainbow.
 function drawUnicorn(ctx, x, y, tilt, sign, t, pl, s) {
   ctx.save();
   ctx.translate(x, y);
@@ -314,87 +317,67 @@ function drawUnicorn(ctx, x, y, tilt, sign, t, pl, s) {
   ctx.rotate(tilt * 0.12);
   const sq = pl.squash || 0;
   ctx.scale(1 + sq * 0.14, 1 - sq * 0.07);
+  const flow = Math.sin(t * 7) * 7; // mane and tail ripple
+  ctx.lineCap = "round"; ctx.lineJoin = "round";
 
-  // rainbow tail streaming back (up-screen)
-  for (let c = 0; c < 7; c++) {
-    ctx.strokeStyle = RAINBOW[c];
-    ctx.lineWidth = 3.5;
-    ctx.globalAlpha = 0.85;
+  // rainbow tail streaming off the rump (up-screen), four bands only
+  ctx.lineWidth = 5;
+  for (let c = 0; c < 4; c++) {
+    ctx.strokeStyle = RAINBOW[c * 2];
     ctx.beginPath();
-    ctx.moveTo(-4 + c * 1.5, -27);
-    ctx.bezierCurveTo(-33, -42, Math.sin(t * 7) * 20 - 14, -58, -8 + c * 2, -66);
+    ctx.moveTo(-6, -32);
+    ctx.quadraticCurveTo(-27 + flow * 0.5, -50, -11 + c * 5, -66);
     ctx.stroke();
   }
-  ctx.globalAlpha = 1;
 
-  // legs
-  ctx.fillStyle = "#d6ddee";
-  for (const lx of [-23, -16, 12, 19]) {
-    ctx.fillRect(lx, -6, 5, 17);
-    ctx.fillStyle = "#bb91ca"; ctx.fillRect(lx, 7, 5, 4);
-    ctx.fillStyle = "#d6ddee";
-  }
+  // two leg marks, drawn under the barrel
+  ctx.strokeStyle = "#c3cce4"; ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.moveTo(-6, -28); ctx.lineTo(-17, -37);
+  ctx.moveTo(5, -8); ctx.lineTo(14, 1);
+  ctx.stroke();
 
-  // body
-  ctx.fillStyle = "#393653";
-  ellipse(ctx, 0, -13, 20, 25);
+  // one barrel and a slim neck sweeping forward into the head
   ctx.fillStyle = "#fdf9f5";
-  ellipse(ctx, 0, -13, 18, 23);
-  ctx.fillStyle = "#e2e7f3"; ellipse(ctx, -9, -11, 5, 17);
-  // two little ears
-  for (const x of [-10, 10]) {
-    ctx.fillStyle = "#fff";
-    ctx.beginPath(); ctx.moveTo(x - 5, -13); ctx.lineTo(x, -31);
-    ctx.lineTo(x + 5, -13); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = "#f3a9c6"; ellipse(ctx, x, -19, 2, 5);
+  ellipse(ctx, -2, -23, 12, 18);
+  ctx.beginPath();
+  ctx.moveTo(-6, -16);
+  ctx.quadraticCurveTo(-8, 0, -4, 11);
+  ctx.lineTo(5, 9);
+  ctx.quadraticCurveTo(7, -6, 6, -18);
+  ctx.closePath(); ctx.fill();
+
+  // rainbow mane along the crest of the neck
+  ctx.lineWidth = 4;
+  for (let c = 0; c < 4; c++) {
+    ctx.strokeStyle = RAINBOW[c * 2];
+    ctx.beginPath();
+    ctx.moveTo(-5 - c, 6);
+    ctx.quadraticCurveTo(-12 - c + flow * 0.3, -8, -8 - c, -24);
+    ctx.stroke();
   }
-  // head
-  ctx.fillStyle = "#fff"; ellipse(ctx, 0, 1, 15, 15);
-  ctx.fillStyle = "#f3d4e4"; ellipse(ctx, 0, 11, 10, 6);
+
+  // single swept-back ear, then head and muzzle over its base
+  ctx.fillStyle = "#fdf9f5";
+  ctx.beginPath();
+  ctx.moveTo(-4, 13); ctx.lineTo(-15, 3); ctx.lineTo(-1, 6);
+  ctx.closePath(); ctx.fill();
+  ellipse(ctx, 2, 16, 7.5, 10);
+  ellipse(ctx, 7, 25, 5.5, 4.5);
 
   // eye (expressive; widens on near miss)
-  for (const x of [-7, 7]) {
-    ctx.fillStyle = "#242744"; ellipse(ctx, x, 0, 2.5, 3.2 + pl.eye * 2);
-    ctx.fillStyle = "#fff"; ellipse(ctx, x + 0.7, -1, 0.9, 1.1);
-    ctx.strokeStyle = "#242744"; ctx.lineWidth = 1.7;
-    ctx.beginPath(); ctx.moveTo(x - 3, -7 + Math.sign(x));
-    ctx.lineTo(x + 3, -7 - Math.sign(x)); ctx.stroke();
-  }
-  ctx.strokeStyle = "#a76f92"; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.arc(0, 9, 4, 0.2, 2.9); ctx.stroke();
+  ctx.fillStyle = "#242744"; ellipse(ctx, 5, 15, 2.3, 2.8 + pl.eye * 2);
 
-  // rainbow mane bands
-  for (let c = 0; c < 7; c++) {
-    ctx.strokeStyle = RAINBOW[c]; ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.moveTo(7 + c, -10);
-    ctx.quadraticCurveTo(33 + Math.sin(t * 9) * 3, -20 - c, 12 + c, -35 - c);
-    ctx.stroke();
-  }
-
-  // absurd oversized gold horn, pointing forward (down in local space)
-  const hx = 0, hy = 14;
-  const grad = ctx.createLinearGradient(hx, hy, hx + 4, hy + 44);
-  grad.addColorStop(0, "#fff2b0");
-  grad.addColorStop(0.5, "#ffd21e");
-  grad.addColorStop(1, "#c98a12");
-  ctx.fillStyle = grad;
+  // absurd oversized gold horn, pointing forward (down in local space),
+  // base at the brow and tip at the collision reach
+  ctx.fillStyle = "#ffd21e";
   ctx.beginPath();
-  ctx.moveTo(hx - 6, hy);
-  ctx.lineTo(hx + 6, hy);
-  ctx.lineTo(hx, hy + 44);
+  ctx.moveTo(-8, 18); ctx.lineTo(4, 18); ctx.lineTo(-2, 60);
   ctx.closePath(); ctx.fill();
-  // spiral ridges
-  ctx.strokeStyle = "#a9700c"; ctx.lineWidth = 1;
-  for (let i = 1; i < 6; i++) {
-    const yy = hy + i * 7;
-    ctx.beginPath(); ctx.moveTo(hx - 5 + i * 0.8, yy); ctx.lineTo(hx + 5 - i * 0.8, yy + 2); ctx.stroke();
-  }
-  // glowing tip ring
-  ctx.globalCompositeOperation = "lighter";
-  ctx.fillStyle = "rgba(255,240,160,0.9)";
-  ctx.beginPath(); ctx.arc(hx, hy + 44, 2.5 + Math.sin(t * 10) * 0.7, 0, 7); ctx.fill();
-  ctx.globalCompositeOperation = "source-over";
+  ctx.fillStyle = "#fff2b0";
+  ctx.beginPath();
+  ctx.moveTo(-8, 18); ctx.lineTo(-3, 18); ctx.lineTo(-2, 60);
+  ctx.closePath(); ctx.fill();
 
   ctx.restore();
 }

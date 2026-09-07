@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { makeState, beginRun } from "../src/game/state.js";
 import { update } from "../src/game/update.js";
-import { STEP, COMBO_MAX, DR_EXIT_COMBO, ANCHOR_N, MAX_VX } from "../src/core/constants.js";
+import { STEP, COMBO_MAX, DR_EXIT_COMBO, DR_GRACE, DR_CHARGE, DR_SPEED_MUL, DR_AFTER_MUL, ANCHOR_N, ANCHOR_R, VIEW_TOP, MAX_VX, VW } from "../src/core/constants.js";
 import { SEQUENCES } from "../src/game/sequences.js";
 
 function run(seed = 1) {
@@ -115,6 +115,26 @@ test("charge is a true 150ms world hold, clears transition, and flips", () => {
   assert.ok(s.entities.every(e => e.kind !== "hazard"));
 });
 
+test("double rainbow opens with a two-second empty runway, then resumes pairs", () => {
+  const s = run();
+  s.combo = COMBO_MAX - 1;
+  target(s);
+  update(s, STEP);
+  steps(s, 13);
+  assert.equal(s.dr.phase, "active");
+  assert.equal(s.entities.length, 0);
+
+  const onScreen = () => s.entities.some(e => e.fz - s.depth <= ANCHOR_R - VIEW_TOP);
+  const graceSteps = Math.floor(DR_GRACE / STEP);
+  for (let i = 0; i < graceSteps; i++) {
+    steps(s, 1);
+    assert.ok(!onScreen(), "a pair appeared " + (i * STEP).toFixed(2) + "s into the grace");
+  }
+  steps(s, 30);
+  assert.ok(onScreen());
+  assert.ok(s.entities.every(e => e.kind !== "hazard"));
+});
+
 test("mirrored horn collects both streams; return clears and restores anchor", () => {
   const s = run();
   s.dr.phase = "active"; s.dr.t = 2;
@@ -187,6 +207,165 @@ test("fresh restart press during the score-card entrance is buffered safely", ()
   assert.equal(s.mode, "over");
   steps(s, 9);
   assert.equal(s.mode, "run");
+});
+
+test("double rainbow inverts keyboard and aim steering; other phases do not", () => {
+  const normalKb = run();
+  normalKb.input.right = true;
+  steps(normalKb, 6);
+  assert.ok(normalKb.player.vx > 0 && normalKb.player.x > 180);
+
+  const drKb = run();
+  drKb.dr.phase = "active"; drKb.dr.t = 5;
+  drKb.input.right = true;
+  steps(drKb, 6);
+  assert.ok(drKb.player.vx < 0 && drKb.player.x < 180);
+
+  const normalAim = run();
+  normalAim.input.aim = true; normalAim.input.aimX = 260;
+  steps(normalAim, 6);
+  assert.ok(normalAim.player.vx > 0 && normalAim.player.x > 180);
+
+  const drAim = run();
+  drAim.dr.phase = "active"; drAim.dr.t = 5;
+  drAim.input.aim = true; drAim.input.aimX = 260;
+  steps(drAim, 6);
+  assert.ok(drAim.player.vx < 0 && drAim.player.x < 180);
+
+  // aim mirrors about the screen centre, so it still settles on a target
+  const drSettle = run();
+  drSettle.dr.phase = "active"; drSettle.dr.t = 5;
+  drSettle.input.aim = true; drSettle.input.aimX = 260;
+  steps(drSettle, 90);
+  assert.ok(Math.abs(drSettle.player.x - (VW - 260)) < 2);
+
+  // exit phase steers normally again
+  const exiting = run();
+  exiting.dr.phase = "exit"; exiting.dr.t = 0.4;
+  exiting.input.right = true;
+  steps(exiting, 6);
+  assert.ok(exiting.player.vx > 0 && exiting.player.x > 180);
+});
+
+test("charge phase holds the world and leaves the pre-flip position untouched", () => {
+  const s = run();
+  s.combo = COMBO_MAX - 1;
+  target(s);
+  update(s, STEP);
+  assert.equal(s.dr.phase, "charge");
+  const x = s.player.x, vx = s.player.vx;
+  s.input.right = true;
+  steps(s, 5);
+  assert.equal(s.dr.phase, "charge");
+  assert.equal(s.player.x, x);
+  assert.equal(s.player.vx, vx);
+});
+
+test("restart and mute-adjacent actions are unaffected by the mirrored controls", () => {
+  const s = run();
+  s.dr.phase = "active"; s.dr.t = 5;
+  target(s, 180, 60, { kind: "hazard" });
+  steps(s, 1);
+  steps(s, 55);
+  assert.equal(s.mode, "over");
+  s.input.held = false;
+  steps(s, 1);
+  assert.equal(s.restartArmed, true);
+  s.input.pressEdge = true; s.input.held = true;
+  steps(s, 1);
+  assert.equal(s.mode, "run");
+  assert.equal(s.dr.phase, "none");
+  s.input.right = true;
+  steps(s, 6);
+  assert.ok(s.player.vx > 0);
+});
+
+// Fraction of the ramped normal speed the world actually advanced this step.
+function stepMul(s) {
+  const before = s.depth;
+  update(s, STEP);
+  s.audio.queue.length = 0;
+  return (s.depth - before) / (s.speed * STEP);
+}
+function quiet(s) { s.entities.length = 0; s.director.cursor = 1e9; }
+
+test("the earned boost starts only when the exit ends, leaving other phases alone", () => {
+  const s = run();
+  s.dr.phase = "exit"; s.dr.t = STEP * 2.5;
+  for (let i = 0; i < 2; i++) {
+    assert.ok(Math.abs(stepMul(s) - 1) < 1e-9, "exit ran at boosted speed");
+    assert.equal(s.dr.phase, "exit");
+    assert.equal(s.dr.boost, 1);
+  }
+  const resumed = stepMul(s); // the exit completes inside this step
+  assert.equal(s.dr.phase, "none");
+  assert.equal(s.dr.boost, DR_AFTER_MUL);
+  assert.ok(Math.abs(resumed - DR_AFTER_MUL) < 1e-9);
+  quiet(s);
+  assert.ok(Math.abs(stepMul(s) - DR_AFTER_MUL) < 1e-9);
+
+  // Active pacing is still exactly the Double Rainbow multiplier.
+  s.dr.phase = "active"; s.dr.t = 5;
+  assert.ok(Math.abs(stepMul(s) - DR_SPEED_MUL) < 1e-9);
+  // Charge still holds the world completely.
+  s.dr.phase = "charge"; s.dr.charge = DR_CHARGE;
+  const held = s.depth;
+  steps(s, 3);
+  assert.equal(s.depth, held);
+});
+
+test("a full double rainbow cycle earns the boost once and never compounds it", () => {
+  const s = run();
+  s.combo = COMBO_MAX - 1;
+  target(s);
+  update(s, STEP); // final hit charges the flip
+  assert.equal(s.dr.phase, "charge");
+  steps(s, 13);
+  assert.equal(s.dr.phase, "active");
+  assert.equal(s.dr.boost, 1, "boost must not apply while active");
+  s.dr.t = STEP / 2;
+  steps(s, 1);
+  assert.equal(s.dr.phase, "exit");
+  assert.equal(s.dr.boost, 1, "boost must not apply during the exit");
+  steps(s, 32); // ride out the 0.5s exit
+  assert.equal(s.dr.phase, "none");
+  assert.equal(s.dr.boost, DR_AFTER_MUL);
+  assert.equal(s.cam.sign, 1);
+  assert.equal(s.cam.anchor, ANCHOR_N);
+
+  // Three more completed Double Rainbows keep the same fixed multiplier.
+  for (let i = 0; i < 3; i++) {
+    quiet(s);
+    s.dr.phase = "exit"; s.dr.t = STEP / 2;
+    steps(s, 1);
+    assert.equal(s.dr.phase, "none");
+    assert.equal(s.dr.boost, DR_AFTER_MUL);
+  }
+  quiet(s);
+  assert.ok(Math.abs(stepMul(s) - DR_AFTER_MUL) < 1e-9);
+});
+
+test("the boost is a run-scoped reward that a new run clears", () => {
+  const fresh = makeState(1);
+  assert.equal(fresh.dr.boost, 1);
+
+  const s = run();
+  s.dr.phase = "exit"; s.dr.t = STEP / 2;
+  steps(s, 1);
+  assert.equal(s.dr.boost, DR_AFTER_MUL);
+
+  target(s, 180, 40, { kind: "hazard" });
+  steps(s, 60);
+  assert.equal(s.mode, "over");
+  assert.equal(s.dr.boost, DR_AFTER_MUL, "death alone must not clear the boost");
+  s.input.held = false;
+  steps(s, 1);
+  s.input.pressEdge = true; s.input.held = true;
+  steps(s, 1);
+  assert.equal(s.mode, "run");
+  assert.equal(s.dr.boost, 1);
+  quiet(s);
+  assert.ok(Math.abs(stepMul(s) - 1) < 1e-9);
 });
 
 test("six authored families include motion, hazards, and optional choices", () => {

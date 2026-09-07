@@ -49,6 +49,14 @@ export const DR_CHARGE = 0.15; // activation hold before the flip
 export const DR_TIME = 9.5; // active seconds
 export const DR_EXIT_COMBO = 14; // retained heat on exit
 export const DR_SCORE_MUL = 2; // base point multiplier during the mode
+export const DR_GRACE = 2; // empty runway after the flip, so the flip can be read
+// Fixed, non-stacking normal-phase speed bump earned once the first Double
+// Rainbow has fully exited. Later Double Rainbows re-apply the same value.
+export const DR_AFTER_MUL = 1.06;
+
+// Entities above this screen row sit behind the HUD band and are not drawn,
+// so it also defines when a spawn first becomes visible.
+export const VIEW_TOP = 110;
 
 // Timing juice.
 export const HITSTOP = 0.03; // 30 ms freeze on a clean hit
