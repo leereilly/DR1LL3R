@@ -1,5 +1,9 @@
 # UNICORN HORN DRILL
 
+<p align="center">
+  <img src="assets/gameplay-loop.webp" width="360" height="640" alt="Gameplay: a unicorn drills downward through glowing cores, then Double Rainbow sends two unicorns flying upward with rainbow trails.">
+</p>
+
 A tiny browser arcade game. Steer a unicorn, drill through glowing cores,
 and dodge spikes. Graphics and audio are generated in code, with no runtime
 dependencies.
