@@ -1,46 +1,70 @@
+[![js13kGames](https://img.shields.io/badge/js13kGames-2026-E5243B?style=flat-square)](https://js13kgames.com/)
+[![GitHub Copilot](https://img.shields.io/badge/Made_with-GitHub_Copilot-8957E5?style=flat-square&logo=githubcopilot&logoColor=white)](https://github.com/features/copilot)
+![GPT-6 Astra](https://img.shields.io/badge/Powered_by-GPT--6_Astra-10A37F?style=flat-square)
+
+Created for [js13kGames](https://js13kgames.com/) competition.
+**Theme:** Rainbows and Unicorns. **Constraint:** web only, <= 13KB.
+
 # UNICORN HORN DRILL
 
 <p align="center">
-  <img src="assets/gameplay-loop.webp" width="360" height="640" alt="Gameplay: a unicorn drills downward through glowing cores, then Double Rainbow sends two unicorns flying upward with rainbow trails.">
+  <a href="#development">
+    <img src="https://64.media.tumblr.com/1b7e13deed101abcb589e52a10f73201/tumblr_pv5623ZzA71qciqqno5_540.gif" alt="UNICORN HORN DRILL cover art" width="540">
+  </a>
 </p>
 
-A tiny browser arcade game. Steer a unicorn, drill through glowing cores,
-and dodge spikes. Graphics and audio are generated in code, with no runtime
-dependencies.
+Drill glowing cores horn-first, dodge deadly spikes, and chain hits to unleash a skyward Double Rainbow.
 
-## Play
+### [🌈 Play now →](#development)
 
-```sh
-npm ci
-npm start
-```
+Run locally using the instructions below, or download the [release ZIP](dist/unicorn-horn-drill.zip),
+extract it, and open `index.html`.
 
-Open http://127.0.0.1:8080/.
+![UNICORN HORN DRILL — animated gameplay preview](assets/gameplay-loop.webp)
 
-Or download the [release ZIP](dist/unicorn-horn-drill.zip), extract it, and open
-`index.html`. The source version needs `npm start`; it cannot run directly from disk.
+**Controls:** <kbd>←</kbd> <kbd>→</kbd> or <kbd>A</kbd> <kbd>D</kbd> steer · mouse movement or touch-drag also steers · <kbd>M</kbd> or tap the speaker to mute
 
-## Controls
+Press any key or tap to start or restart. Line up your horn with glowing cores:
+body hits and red spikes end the run, and missing a core resets your combo.
 
-- Press any key or tap to start or restart.
-- Use left/right arrows, A/D, mouse movement, or touch-drag to steer.
-- Line up your horn with glowing cores. Body hits and red spikes end the run.
-- Press M or tap the speaker to toggle sound.
+## Features
 
-Chain 28 hits to trigger Double Rainbow: fly upward with a second unicorn and
-earn double hit scores for 9.5 seconds. Missing a core resets your combo.
-After the first Double Rainbow, descent stays 6% faster for the rest of the run.
-Your best score is saved locally.
+- Horn-first arcade drilling with keyboard, mouse, and touch controls.
+- Graphics and audio generated in code, with no runtime dependencies.
+- Chain 28 hits to trigger Double Rainbow: fly upward with a second unicorn and rainbow trails, earning double hit scores for 9.5 seconds.
+- After the first Double Rainbow, descent stays 6% faster for the rest of the run. Chase a best score saved locally.
 
 ## Development
 
+Requires [Node.js](https://nodejs.org/) 18 or newer and npm.
+
 ```sh
-npm test
+# Install dependencies
+npm ci
+
+# Run locally
+npm start
+
+# Build the submission
 npm run build
 ```
 
-The build uses esbuild to produce `dist/unicorn-horn-drill.zip` containing a
-standalone `index.html`. It fails if the ZIP reaches 13,000 bytes.
+Open http://127.0.0.1:8080/. The source version needs `npm start`; it cannot run
+directly from disk. Run tests with `npm test`.
+
+Build output: `dist/unicorn-horn-drill.zip`.
+
+The build uses esbuild to produce a standalone `index.html` and package it in the
+submission ZIP. It fails if the ZIP reaches 13,000 bytes.
 
 Development URL options: `?seed=42&autopilot=1`, `?start=run`, and `?mute=1`.
 These and the `window.__uhd` debug hook are removed from release builds.
+
+## Contributing
+
+Contributions welcome! This was a short-lived competition project, so ongoing
+maintenance isn't guaranteed. Feel free to fork it and make it your own.
+
+## License
+
+MIT. A `LICENSE` file has not yet been added.
