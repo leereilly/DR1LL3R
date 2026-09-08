@@ -9,7 +9,7 @@ Created for [js13kGames](https://js13kgames.com/) competition.
 
 <p align="center">
   <a href="#development">
-    <img src="https://64.media.tumblr.com/1b7e13deed101abcb589e52a10f73201/tumblr_pv5623ZzA71qciqqno5_540.gif" alt="UNICORN HORN DRILL cover art" width="540">
+    <img src="assets/gameplay-loop.webp" alt="UNICORN HORN DRILL cover art" width="540">
   </a>
 </p>
 
@@ -19,8 +19,6 @@ Drill glowing cores horn-first, dodge deadly spikes, and chain hits to unleash a
 
 Run locally using the instructions below, or download the [release ZIP](dist/unicorn-horn-drill.zip),
 extract it, and open `index.html`.
-
-![UNICORN HORN DRILL — animated gameplay preview](assets/gameplay-loop.webp)
 
 **Controls:** <kbd>←</kbd> <kbd>→</kbd> or <kbd>A</kbd> <kbd>D</kbd> steer · mouse movement or touch-drag also steers · <kbd>M</kbd> or tap the speaker to mute
 
