@@ -15,7 +15,7 @@ Created for [js13kGames](https://js13kgames.com/) competition.
 
 Drill glowing cores horn-first, dodge deadly spikes, and chain hits to unleash a skyward ***Double Rainbow**. What. Does. It. Mean?!?
 
-### [🌈 Play now →](#development)
+### [🌈 Play now →](https://js13kgames.com/2026/games/dr1ll3r)
 
 Run locally using the instructions below, or download the [release ZIP](dist/unicorn-horn-drill.zip),
 extract it, and open `index.html`.
