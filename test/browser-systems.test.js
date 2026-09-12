@@ -3,7 +3,11 @@ import assert from "node:assert/strict";
 import { attachInput } from "../src/game/input.js";
 import { makeState } from "../src/game/state.js";
 import { createAudio } from "../src/game/audio.js";
-import { muteHit } from "../src/game/render.js";
+import { GAME_TITLE, muteHit } from "../src/game/render.js";
+
+test("title screen uses the DR1LL3R game name", () => {
+  assert.equal(GAME_TITLE, "DR1LL3R");
+});
 
 test("keyboard repeats, held aliases, pointer restart, mute, and blur clearing", () => {
   const handlers = {};

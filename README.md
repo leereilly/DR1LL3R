@@ -20,10 +20,10 @@ Drill glowing cores horn-first, dodge deadly spikes, and chain hits to unleash a
 Run locally using the instructions below, or download the [release ZIP](dist/unicorn-horn-drill.zip),
 extract it, and open `index.html`.
 
-**Controls:** <kbd>←</kbd> <kbd>→</kbd> or <kbd>A</kbd> <kbd>D</kbd> steer · mouse movement or touch-drag also steers · <kbd>M</kbd> or tap the speaker to mute
+  **Controls:** <kbd>←</kbd> <kbd>→</kbd> or <kbd>A</kbd> <kbd>D</kbd> steer · mouse movement or touch-drag also steers · <kbd>M</kbd> or tap the speaker to mute
 
-Press any key or tap to start or restart. Line up your horn with glowing cores:
-body hits and red spikes end the run, and missing a core resets your combo.
+  Press any key or tap to start or restart. Line up your horn with glowing cores:
+  body hits and red spikes end the run, and missing a core resets your combo.
 
 ## Features
 

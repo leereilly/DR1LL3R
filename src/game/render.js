@@ -6,6 +6,7 @@ import { VW, VH, RAINBOW, BIOMES, COMBO_MAX, BAND, DEATH_LOCK, VIEW_TOP } from "
 import { clamp } from "../core/math.js";
 
 const FONT = "system-ui,-apple-system,Segoe UI,Roboto,sans-serif";
+export const GAME_TITLE = "DR1LL3R";
 
 /**
  * @param {CanvasRenderingContext2D} ctx
@@ -520,23 +521,16 @@ function drawAttract(ctx, s, t, Y) {
 function drawTitle(ctx, s, t) {
   ctx.textAlign = "center";
   const cx = VW / 2;
-  const lines = ["UNICORN", "HORN", "DRILL"];
   label(ctx, "ONE HORN. NO BRAKES.", cx, 67, 11, "#a5b8d2");
-  const sizes = [51, 81, 81];
-  let y = 146;
-  for (let i = 0; i < 3; i++) {
-    ctx.font = "italic 900 " + sizes[i] + "px " + FONT;
-    // rainbow shadow stack
-    for (let c = 0; c < 7; c++) {
-      ctx.fillStyle = RAINBOW[c]; ctx.globalAlpha = 0.7;
-      ctx.fillText(lines[i], cx - (7 - c) * 0.8, y + (7 - c) * 1.5);
-    }
-    ctx.globalCompositeOperation = "source-over";
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = "#fff";
-    ctx.fillText(lines[i], cx, y);
-    y += 77;
+  ctx.font = "italic 900 62px " + FONT;
+  for (let c = 0; c < 7; c++) {
+    ctx.fillStyle = RAINBOW[c]; ctx.globalAlpha = 0.7;
+    ctx.fillText(GAME_TITLE, cx - (7 - c) * 0.8, 223 + (7 - c) * 1.5);
   }
+  ctx.globalCompositeOperation = "source-over";
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = "#fff";
+  ctx.fillText(GAME_TITLE, cx, 223);
   ctx.font = "800 18px " + FONT;
   ctx.fillStyle = "#ffd21e";
   ctx.fillText("\u2193 DRILL EVERYTHING \u2193", cx, 342);
