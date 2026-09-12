@@ -5,7 +5,7 @@
 Created for [js13kGames](https://js13kgames.com/) competition.
 **Theme:** Rainbows and Unicorns. **Constraint:** web only, <= 13KB.
 
-# UNICORN HORN DRILL
+# DR1LL3R
 
 <p align="center">
   <a href="#development">
@@ -13,7 +13,7 @@ Created for [js13kGames](https://js13kgames.com/) competition.
   </a>
 </p>
 
-Drill glowing cores horn-first, dodge deadly spikes, and chain hits to unleash a skyward Double Rainbow.
+Drill glowing cores horn-first, dodge deadly spikes, and chain hits to unleash a skyward ***Double Rainbow**. What. Does. It. Mean?!?
 
 ### [🌈 Play now →](#development)
 
@@ -67,4 +67,4 @@ maintenance isn't guaranteed. Feel free to fork it and make it your own.
 
 ## License
 
-MIT. A `LICENSE` file has not yet been added.
+[MIT](LICENSE).
